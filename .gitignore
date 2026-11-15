@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Apache Airflow
+airflow.cfg
+airflow.db
+airflow.db-*
+airflow-webserver.pid
+airflow-scheduler.pid
+logs/
+
+# Environment variables
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
