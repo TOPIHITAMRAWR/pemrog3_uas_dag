@@ -1,7 +1,157 @@
 [
-  {"adm4": "35.78.09.1001", "nama": "Keputih", "kecamatan": "Sukolilo"},
-  {"adm4": "35.78.09.1002", "nama": "Gebang Putih", "kecamatan": "Sukolilo"},
-  {"adm4": "35.78.09.1003", "nama": "Klampis Ngasem", "kecamatan": "Sukolilo"},
-  {"adm4": "35.78.31.1002", "nama": "Made", "kecamatan": "Sambikerep"},
-  {"adm4": "35.78.16.1001", "nama": "Ampel", "kecamatan": "Semampir"}
+  {
+    "adm4": "35.78.01.1001",
+    "nama": "Karang Pilang",
+    "kecamatan": "Karang Pilang"
+  },
+  {
+    "adm4": "35.78.02.1001",
+    "nama": "Sidosermo",
+    "kecamatan": "Wonocolo"
+  },
+  {
+    "adm4": "35.78.03.1001",
+    "nama": "Kalirungkut",
+    "kecamatan": "Rungkut"
+  },
+  {
+    "adm4": "35.78.04.1001",
+    "nama": "Wonokromo",
+    "kecamatan": "Wonokromo"
+  },
+  {
+    "adm4": "35.78.05.1001",
+    "nama": "Tegalsari",
+    "kecamatan": "Tegalsari"
+  },
+  {
+    "adm4": "35.78.06.1001",
+    "nama": "Petemon",
+    "kecamatan": "Sawahan"
+  },
+  {
+    "adm4": "35.78.07.1001",
+    "nama": "Embong Kaliasin",
+    "kecamatan": "Genteng"
+  },
+  {
+    "adm4": "35.78.08.1001",
+    "nama": "Gubeng",
+    "kecamatan": "Gubeng"
+  },
+  {
+    "adm4": "35.78.09.1001",
+    "nama": "Keputih",
+    "kecamatan": "Sukolilo"
+  },
+  {
+    "adm4": "35.78.10.1001",
+    "nama": "Tambaksari",
+    "kecamatan": "Tambaksari"
+  },
+  {
+    "adm4": "35.78.11.1001",
+    "nama": "Simokerto",
+    "kecamatan": "Simokerto"
+  },
+  {
+    "adm4": "35.78.12.1001",
+    "nama": "Bongkaran",
+    "kecamatan": "Pabean Cantian"
+  },
+  {
+    "adm4": "35.78.13.1001",
+    "nama": "Alun-alun Contong",
+    "kecamatan": "Bubutan"
+  },
+  {
+    "adm4": "35.78.14.1002",
+    "nama": "Tandes",
+    "kecamatan": "Tandes"
+  },
+  {
+    "adm4": "35.78.15.1001",
+    "nama": "Krembangan Selatan",
+    "kecamatan": "Krembangan"
+  },
+  {
+    "adm4": "35.78.16.1001",
+    "nama": "Ampel",
+    "kecamatan": "Semampir"
+  },
+  {
+    "adm4": "35.78.17.1001",
+    "nama": "Tanah Kali Kedinding",
+    "kecamatan": "Kenjeran"
+  },
+  {
+    "adm4": "35.78.18.1001",
+    "nama": "Bangkingan",
+    "kecamatan": "Lakarsantri"
+  },
+  {
+    "adm4": "35.78.19.1001",
+    "nama": "Kandangan",
+    "kecamatan": "Benowo"
+  },
+  {
+    "adm4": "35.78.20.1001",
+    "nama": "Wiyung",
+    "kecamatan": "Wiyung"
+  },
+  {
+    "adm4": "35.78.21.1001",
+    "nama": "Dukuh Pakis",
+    "kecamatan": "Dukuh Pakis"
+  },
+  {
+    "adm4": "35.78.22.1001",
+    "nama": "Gayungan",
+    "kecamatan": "Gayungan"
+  },
+  {
+    "adm4": "35.78.23.1001",
+    "nama": "Jambangan",
+    "kecamatan": "Jambangan"
+  },
+  {
+    "adm4": "35.78.24.1001",
+    "nama": "Kutisari",
+    "kecamatan": "Tenggilis Mejoyo"
+  },
+  {
+    "adm4": "35.78.25.1001",
+    "nama": "Gunung Anyar",
+    "kecamatan": "Gunung Anyar"
+  },
+  {
+    "adm4": "35.78.26.1001",
+    "nama": "Mulyorejo",
+    "kecamatan": "Mulyorejo"
+  },
+  {
+    "adm4": "35.78.27.1001",
+    "nama": "Sukomanunggal",
+    "kecamatan": "Sukomanunggal"
+  },
+  {
+    "adm4": "35.78.28.1001",
+    "nama": "Asem Rowo",
+    "kecamatan": "Asem Rowo"
+  },
+  {
+    "adm4": "35.78.29.1001",
+    "nama": "Kedung Cowek",
+    "kecamatan": "Bulak"
+  },
+  {
+    "adm4": "35.78.30.1001",
+    "nama": "Pakal",
+    "kecamatan": "Pakal"
+  },
+  {
+    "adm4": "35.78.31.1002",
+    "nama": "Made",
+    "kecamatan": "Sambikerep"
+  }
 ]

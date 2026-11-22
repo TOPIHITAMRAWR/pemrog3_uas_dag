@@ -1,4 +1,4 @@
-# Panduan Menjalankan Proyek Pipeline Cuaca BMKG (Apache Airflow)
+﻿# Panduan Menjalankan Proyek Pipeline Cuaca BMKG (Apache Airflow)
 
 Dokumen ini memuat panduan lengkap untuk mempersiapkan environment, mengonfigurasi, dan menjalankan pipeline data prakiraan cuaca BMKG berbasis **Apache Airflow**.
 
@@ -8,14 +8,14 @@ Dokumen ini memuat panduan lengkap untuk mempersiapkan environment, mengonfigura
 
 Proyek ini terdiri dari dua DAG yang saling terhubung:
 1. **DAG 1: `bmkg_weather_etl`**
-   - **Tujuan**: Mengambil data prakiraan cuaca resmi dari API publik BMKG untuk 5 wilayah target di Surabaya.
+   - **Tujuan**: Mengambil data prakiraan cuaca resmi dari API publik BMKG untuk 31 kelurahan representatif (1 kelurahan per kecamatan) di Kota Surabaya.
    - **Alur Task**: `check_api` $\rightarrow$ `extract` (dinamis per lokasi via `.expand()`) $\rightarrow$ `validate_raw` $\rightarrow$ `transform` $\rightarrow$ `load` $\rightarrow$ `trigger_analytics`.
    - **Output**: File raw JSON di `data/raw/`, CSV di `data/processed/`, dan data tersimpan ke tabel `weather_forecast` pada `data/bmkg_weather.db`.
 
 2. **DAG 2: `bmkg_weather_analytics`**
    - **Tujuan**: Menganalisis data prakiraan cuaca terkini secara otomatis setelah ETL selesai.
    - **Alur Task (Paralel)**:
-     - `detect_extreme_weather`: Mendeteksi indikasi cuaca ekstrem (curah hujan $> 20.0$ mm, kecepatan angin $> 30.0$ km/jam, suhu $\ge 35.0$ °C) dan menyimpannya ke tabel `weather_alerts`.
+     - `detect_extreme_weather`: Mendeteksi indikasi cuaca ekstrem (curah hujan $> 20.0$ mm, kecepatan angin $> 30.0$ km/jam, suhu $\ge 35.0$ Â°C) dan menyimpannya ke tabel `weather_alerts`.
      - `build_daily_summary`: Menghitung agregasi harian per wilayah (rata-rata suhu, kelembapan, curah hujan total, dan kecepatan angin) ke tabel `weather_daily_summary`.
 
 ---
@@ -24,17 +24,17 @@ Proyek ini terdiri dari dua DAG yang saling terhubung:
 
 ```text
 proyek_airflow/
-├── config/
-│   └── locations.json          # Daftar kode wilayah adm4 BMKG target
-├── dags/
-│   ├── bmkg_weather_etl.py     # DAG 1: Ekstraksi, Transformasi, dan Pemuatan Data
-│   └── bmkg_weather_analytics.py # DAG 2: Analitik cuaca ekstrem & ringkasan harian
-├── data/
-│   ├── raw/                    # Arsip response mentah JSON per batch waktu
-│   ├── processed/              # File CSV hasil transformasi
-│   └── bmkg_weather.db         # Database SQLite utama
-├── PANDUAN.md                  # Dokumentasi panduan instalasi dan eksekusi
-└── .gitignore
+â”œâ”€â”€ config/
+â”‚   â””â”€â”€ locations.json          # Daftar kode wilayah adm4 BMKG target
+â”œâ”€â”€ dags/
+â”‚   â”œâ”€â”€ bmkg_weather_etl.py     # DAG 1: Ekstraksi, Transformasi, dan Pemuatan Data
+â”‚   â””â”€â”€ bmkg_weather_analytics.py # DAG 2: Analitik cuaca ekstrem & ringkasan harian
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ raw/                    # Arsip response mentah JSON per batch waktu
+â”‚   â”œâ”€â”€ processed/              # File CSV hasil transformasi
+â”‚   â””â”€â”€ bmkg_weather.db         # Database SQLite utama
+â”œâ”€â”€ PANDUAN.md                  # Dokumentasi panduan instalasi dan eksekusi
+â””â”€â”€ .gitignore
 ```
 
 ---
@@ -194,7 +194,7 @@ Jalankan DAG pertama (`bmkg_weather_etl`):
 
 ### 3. Alur Eksekusi Otomatis
 
-1. `bmkg_weather_etl` akan mengekstrak data 5 kelurahan dari API BMKG secara paralel.
+1. `bmkg_weather_etl` akan mengekstrak data 31 kelurahan (31 kecamatan) dari API BMKG secara paralel.
 2. Melakukan validasi struktur JSON dan transformasi tanggal lokal ke format WIB.
 3. Menyimpan hasil olahan ke tabel `weather_forecast`.
 4. Task terakhir `trigger_analytics` akan memicu eksekusi `bmkg_weather_analytics` secara otomatis.
@@ -263,3 +263,4 @@ airflow tasks test bmkg_weather_analytics build_daily_summary 2026-11-22
 3. **Pengaturan Penjadwalan (Scheduling)**:
    - Saat ini kedua DAG disetel `schedule=None` untuk mode manual/triggered testing.
    - Jika ingin dijadwalkan otomatis harian (misal jam 10:00 dan 22:00 WIB), ubah parameter `schedule` pada DAG 1 (`bmkg_weather_etl`) menjadi cron expression: `"0 10,22 * * *"`.
+
