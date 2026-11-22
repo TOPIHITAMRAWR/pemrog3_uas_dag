@@ -9,6 +9,7 @@ import pendulum
 import requests
 from airflow.decorators import dag, task
 from airflow.exceptions import AirflowFailException
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 # ---------- Konfigurasi ----------
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -270,7 +271,15 @@ def bmkg_weather_etl():
     ok >> extracted
     validated = validate_raw(extracted)
     csv_path = transform(validated)
-    load(csv_path)
+    loaded = load(csv_path)
+
+    trigger_analytics = TriggerDagRunOperator(
+        task_id="trigger_analytics",
+        trigger_dag_id="bmkg_weather_analytics",
+        wait_for_completion=False,
+        reset_dag_run=True,
+    )
+    loaded >> trigger_analytics
 
 
 bmkg_weather_etl()
