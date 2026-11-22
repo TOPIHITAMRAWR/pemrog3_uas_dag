@@ -1,6 +1,7 @@
-"""DAG 1: bmkg_weather_etl - ETL prakiraan cuaca BMKG (Tahap 2, versi revisi)."""
+"""DAG 1: bmkg_weather_etl - ETL prakiraan cuaca BMKG (31 Kecamatan Kota Surabaya)."""
 import json
 import sqlite3
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -16,7 +17,9 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 RAW_DIR = PROJECT_DIR / "data" / "raw"
 PROCESSED_DIR = PROJECT_DIR / "data" / "processed"
 DB_FILE = PROJECT_DIR / "data" / "bmkg_weather.db"
-LOCATIONS = json.loads((PROJECT_DIR / "config" / "locations.json").read_text())
+LOCATIONS = json.loads(
+    (PROJECT_DIR / "config" / "locations.json").read_text(encoding="utf-8")
+)
 
 API_URL = "https://api.bmkg.go.id/publik/prakiraan-cuaca"
 HEADERS = {
@@ -50,15 +53,31 @@ NUMERIC_COLS = [
 
 
 # ---------- Fungsi bantu ----------
-def fetch_forecast(adm4):
-    """Ambil prakiraan satu lokasi. Status 400/404 gagal langsung (tanpa retry)."""
-    r = requests.get(API_URL, params={"adm4": adm4}, headers=HEADERS, timeout=30)
-    if r.status_code != 200:
-        print(f"adm4={adm4} status={r.status_code} isi={r.text[:300]}")
-    if r.status_code in (400, 404):
-        raise AirflowFailException(f"Kode wilayah {adm4} ditolak (status {r.status_code})")
-    r.raise_for_status()
-    return r
+def fetch_forecast(adm4, max_attempts=3):
+    """Ambil prakiraan satu lokasi dengan jeda aman dan retry ringan untuk error sementara."""
+    for attempt in range(1, max_attempts + 1):
+        time.sleep(0.4)  # Jeda ringan untuk menghindari rate limit BMKG
+        try:
+            r = requests.get(
+                API_URL, params={"adm4": adm4}, headers=HEADERS, timeout=30
+            )
+            if r.status_code == 200:
+                return r
+            print(
+                f"adm4={adm4} percobaan={attempt}/{max_attempts} "
+                f"status={r.status_code} isi={r.text[:200]}"
+            )
+            if r.status_code in (400, 404):
+                raise AirflowFailException(
+                    f"Kode wilayah {adm4} ditolak (status {r.status_code})"
+                )
+            if attempt == max_attempts:
+                r.raise_for_status()
+        except requests.RequestException as exc:
+            print(f"adm4={adm4} percobaan={attempt}/{max_attempts} error={exc}")
+            if attempt == max_attempts:
+                raise
+        time.sleep(2 * attempt)
 
 
 def get_analysis(payload):
@@ -125,11 +144,14 @@ def flatten(payload, adm4):
 def check_api():
     first = LOCATIONS[0]
     r = fetch_forecast(first["adm4"])
-    print(f"check_api: status={r.status_code}, lokasi uji={first['nama']}")
+    print(
+        f"check_api: status={r.status_code}, total_lokasi={len(LOCATIONS)}, "
+        f"lokasi uji={first['nama']} ({first['kecamatan']})"
+    )
     return r.status_code
 
 
-@task
+@task(max_active_tis_per_dag=3)
 def extract(location, ts_nodash=None):
     adm4 = location["adm4"]
     payload = fetch_forecast(adm4).json()
@@ -143,17 +165,29 @@ def extract(location, ts_nodash=None):
     out_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     status = "data baru" if is_new else "belum diperbarui"
-    print(f"extract: adm4={adm4} analysis_utc={analysis} "
-          f"terakhir_di_db={previous} -> {status}")
-    return {"adm4": adm4, "nama": location["nama"], "raw_file": str(out_file),
-            "analysis_utc": analysis, "is_new": is_new}
+    print(
+        f"extract: adm4={adm4} ({location['kecamatan']} - {location['nama']}) "
+        f"analysis_utc={analysis} terakhir_di_db={previous} -> {status}"
+    )
+    return {
+        "adm4": adm4,
+        "nama": location["nama"],
+        "kecamatan": location.get("kecamatan", ""),
+        "raw_file": str(out_file),
+        "analysis_utc": analysis,
+        "is_new": is_new,
+    }
 
 
 @task(trigger_rule="all_done")   # tetap jalan walau ada lokasi yang gagal
 def validate_raw(extracted):
     files = [f for f in extracted if f]
     berhasil = {f["adm4"] for f in files}
-    gagal = [loc["nama"] for loc in LOCATIONS if loc["adm4"] not in berhasil]
+    gagal = [
+        f"{loc['nama']} ({loc['kecamatan']})"
+        for loc in LOCATIONS
+        if loc["adm4"] not in berhasil
+    ]
     if gagal:
         print(f"validate_raw PERINGATAN: extract gagal untuk {gagal}")
     if not files:
@@ -175,8 +209,10 @@ def validate_raw(extracted):
                     errors.append(f"{item['nama']}: field hilang {sorted(missing)}")
                     break
             if len(errors) == n_before:
-                print(f"validate_raw: adm4={item['adm4']} {item['nama']} OK, "
-                      f"{len(days)} hari, {len(slots)} slot")
+                print(
+                    f"validate_raw: adm4={item['adm4']} {item['nama']} OK, "
+                    f"{len(days)} hari, {len(slots)} slot"
+                )
         except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
             errors.append(f"{item['nama']}: struktur JSON tidak valid ({exc!r})")
     if errors:
@@ -249,25 +285,25 @@ def load(csv_path):
 
 # ---------- DAG ----------
 default_args = {
-    "owner": "kelompok1",
+    "owner": "kelompok2",
     "retries": 3,
-    "retry_delay": timedelta(minutes=5),
+    "retry_delay": timedelta(minutes=1),
     "retry_exponential_backoff": True,
 }
 
 
 @dag(
     dag_id="bmkg_weather_etl",
-    description="ETL prakiraan cuaca BMKG (Sukolilo, Sambikerep, Semampir)",
+    description="ETL prakiraan cuaca BMKG (31 Kecamatan Kota Surabaya)",
     start_date=pendulum.datetime(2026, 11, 1, tz="Asia/Jakarta"),
     schedule=None,          # Fase D: "0 10,22 * * *" (WIB)
     catchup=False,
     default_args=default_args,
-    tags=["uas", "bmkg"],
+    tags=["uas", "bmkg", "etl"],
 )
 def bmkg_weather_etl():
     ok = check_api()
-    extracted = extract.expand(location=LOCATIONS)   # satu task per lokasi
+    extracted = extract.expand(location=LOCATIONS)   # satu task per lokasi (maks 3 paralel)
     ok >> extracted
     validated = validate_raw(extracted)
     csv_path = transform(validated)
